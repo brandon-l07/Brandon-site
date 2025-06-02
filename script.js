@@ -110,7 +110,22 @@ audio.preload = 'auto';
 audio.volume = 0.3;
 
 const btn = document.getElementById('music-player-btn');
-const playIcon = document.getElementById('play-icon');
+const playButton = document.getElementById("play-button");
+const epilepsyPopup = document.getElementById("epilepsy-popup");
+const epilepsyClose = document.getElementById("epilepsy-close");
+
+playButton.addEventListener("click", () => {
+  // Play music and start animation (assuming you already have this)
+  playMusicAndStartAnimation();
+
+  // Show the epilepsy popup
+  epilepsyPopup.style.display = "flex";
+});
+
+epilepsyClose.addEventListener("click", () => {
+  epilepsyPopup.style.display = "none";
+});
+
 const pauseIcon = document.getElementById('pause-icon');
 
 // Web Audio API setup
