@@ -141,23 +141,6 @@ function togglePlayPause() {
 }
 btn.addEventListener('click', togglePlayPause);
 
-//skip toggle
-const skipButton = document.getElementById('skip-button');
-
-function skipToNextTrack() {
-  currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-  audio.src = playlist[currentTrackIndex];
-  audio.play();
-
-  // Keep button state consistent
-  btn.textContent = 'Curated by Brandon';
-  btn.prepend(pauseIcon);
-  pauseIcon.style.display = 'inline';
-  playIcon.style.display = 'none';
-}
-
-skipButton.addEventListener('click', skipToNextTrack);
-
 // Track change
 audio.addEventListener('ended', () => {
   currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
