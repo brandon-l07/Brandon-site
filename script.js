@@ -80,16 +80,6 @@ function lerp(a, b, t) {
   return a + (b - a) * t;
 }
 
-// Helper to average frequency bins in range [start, end]
-function getAverageVolume(dataArray, start, end) {
-  let sum = 0;
-  let count = end - start + 1;
-  for (let i = start; i <= end; i++) {
-    sum += dataArray[i];
-  }
-  return sum / count;
-}
-
 // Music Player
 const playlist = [
   'Music-Site/Abba - Dancing Queen (Official Music Video Remastered).mp3',
@@ -129,9 +119,6 @@ analyser.fftSize = 256;
 const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
 
-// Flag to track if audio is playing
-let audioPlaying = false;
-
 // Play/pause toggle
 function togglePlayPause() {
   if (audioCtx.state === 'suspended') {
@@ -140,14 +127,14 @@ function togglePlayPause() {
 
   if (audio.paused) {
     audio.play();
-    audioPlaying = true; // Start audio-driven effects
     btn.textContent = 'Curated by Brandon';
     btn.prepend(pauseIcon);
     pauseIcon.style.display = 'inline';
     playIcon.style.display = 'none';
+    // Reset rotation start time to smoothly transition when play starts
+    rotationStartTime = performance.now();
   } else {
     audio.pause();
-    audioPlaying = false; // Stop audio-driven effects
     btn.textContent = 'Play';
     btn.prepend(playIcon);
     playIcon.style.display = 'inline';
@@ -177,7 +164,35 @@ window.addEventListener("load", function () {
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
 
-  // Always rotate cube on sequence timer
+  // Audio analysis
+  analyser.getByteFrequencyData(dataArray);
+
+  // Scale cube based on total volume
+  let sum = 0;
+  for (let i = 0; i < bufferLength; i++) {
+    sum += dataArray[i];
+  }
+  const avg = sum / bufferLength;
+  const scale = 1 + avg / 256;
+  cube.scale.set(scale, scale, scale);
+
+  // Smooth color fade based on pitch
+  let highSum = 0;
+  for (let i = bufferLength * 0.75; i < bufferLength; i++) {
+    highSum += dataArray[i];
+  }
+  const highAvg = highSum / (bufferLength * 0.25);
+
+  const targetHue = Math.min(360, Math.floor(highAvg * 3)); // map to 0–360
+  const currentColor = cube.material.color;
+  const hsl = {};
+  currentColor.getHSL(hsl);
+
+  const lerpSpeed = 0.05;
+  const newHue = hsl.h + (targetHue / 360 - hsl.h) * lerpSpeed;
+  cube.material.color.setHSL(newHue, 1, 0.5);
+
+  // --- SMOOTH LERP ROTATION TRANSITION ---
   const elapsed = time - rotationStartTime;
   const t = Math.min(elapsed / rotationDuration, 1);
   const nextIndex = (currentIndex + 1) % sequence.length;
@@ -190,40 +205,11 @@ function animate(time = performance.now()) {
     currentIndex = nextIndex;
     rotationStartTime = time;
   }
+  // ---------------------------------------
 
-  // Update nav links
   updateLinks(sequence[currentIndex].face);
-
-  if (audioPlaying) {
-    analyser.getByteFrequencyData(dataArray);
-
-    // Split frequency ranges for RGB
-    const low = getAverageVolume(dataArray, 0, 10);
-    const mid = getAverageVolume(dataArray, 11, 40);
-    const high = getAverageVolume(dataArray, 41, bufferLength - 1);
-
-    const targetColor = new THREE.Color(low / 255, mid / 255, high / 255);
-
-    // Smoothly lerp color to target based on freq ranges
-    cube.material.color.lerp(targetColor, 0.1);
-
-    // Scale cube based on average volume
-    let sum = 0;
-    for (let i = 0; i < bufferLength; i++) {
-      sum += dataArray[i];
-    }
-    const avg = sum / bufferLength;
-    const scale = 1 + avg / 256;
-    cube.scale.set(scale, scale, scale);
-  } else {
-    // Smoothly fade color back to base and scale back to normal when not playing
-    cube.material.color.lerp(new THREE.Color(0x00aaff), 0.05);
-    cube.scale.lerp(new THREE.Vector3(1, 1, 1), 0.05);
-  }
-
   renderer.render(scene, camera);
 }
 
 animate();
-
 
