@@ -33,13 +33,14 @@ const navElems = {
   "bottom-right": document.getElementById("bottom-right"),
 };
 
+// Map cube face to nav corner, text, and link
 const faceToNav = {
-  right: { corner: "top-left", text: "About" },
-  front: { corner: "bottom-left", text: "Projects" },
-  top: { corner: "top-right", text: "Blog" },
-  back: { corner: "bottom-right", text: "Contact" },
-  left: { corner: "top-left", text: "About" },
-  bottom: { corner: "bottom-right", text: "Contact" }
+  right: { corner: "top-left", text: "About", url: "about.html" },
+  front: { corner: "bottom-left", text: "Projects", url: "projects.html" },
+  top: { corner: "top-right", text: "Blog", url: "blog.html" },
+  back: { corner: "bottom-right", text: "Contact", url: "contact.html" },
+  left: { corner: "top-left", text: "About", url: "about.html" },
+  bottom: { corner: "bottom-right", text: "Contact", url: "contact.html" }
 };
 
 const faceRotations = {
@@ -52,15 +53,22 @@ const faceRotations = {
 function updateLinks(faceName) {
   for (const corner in navElems) {
     if (faceName in faceToNav && corner === faceToNav[faceName].corner) {
-      navElems[corner].textContent = faceToNav[faceName].text;
-      navElems[corner].classList.add("visible");
-      navElems[corner].style.backgroundColor = "transparent";
-      navElems[corner].style.color = "white";
+      const { text, url } = faceToNav[faceName];
+      const elem = navElems[corner];
+      elem.textContent = text;
+      elem.classList.add("visible");
+      elem.style.backgroundColor = "transparent";
+      elem.style.color = "white";
+      elem.setAttribute("href", url);
+      elem.style.pointerEvents = "auto";
     } else {
-      navElems[corner].textContent = "";
-      navElems[corner].classList.remove("visible");
-      navElems[corner].style.backgroundColor = "black";
-      navElems[corner].style.color = "black";
+      const elem = navElems[corner];
+      elem.textContent = "";
+      elem.classList.remove("visible");
+      elem.style.backgroundColor = "black";
+      elem.style.color = "black";
+      elem.removeAttribute("href");
+      elem.style.pointerEvents = "none";
     }
   }
 }
@@ -89,9 +97,7 @@ const playlist = [
   'Music-Site/Earth, Wind & Fire - September.mp3',
   'Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3',
   'Music-Site/Bla Bla Bla (Radio Cut).mp3'
-  // add more songs here — now it's safe
 ];
-
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -106,7 +112,6 @@ audio.preload = 'auto';
 audio.volume = 0.3;
 audio.src = playlist[currentTrackIndex];
 
-// Audio Context Setup (only once)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const source = audioCtx.createMediaElementSource(audio);
 const analyser = audioCtx.createAnalyser();
@@ -117,11 +122,9 @@ const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
 
 const btn = document.getElementById('music-player-btn');
-const playButton = document.getElementById("play-button");
 const pauseIcon = document.getElementById('pause-icon');
 const playIcon = document.getElementById('play-icon');
 
-// Play/pause toggle
 function togglePlayPause() {
   if (audioCtx.state === 'suspended') {
     audioCtx.resume();
@@ -144,14 +147,12 @@ function togglePlayPause() {
 }
 btn.addEventListener('click', togglePlayPause);
 
-// Track change
 audio.addEventListener('ended', () => {
   currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
   audio.src = playlist[currentTrackIndex];
   audio.play();
 });
 
-// Loading screen fade out
 window.addEventListener("load", function () {
   const loadingScreen = document.getElementById("loading-screen");
   loadingScreen.classList.add("fade-out");
@@ -208,9 +209,8 @@ function animate(time = performance.now()) {
   const hsl = {};
   col.getHSL(hsl);
 
-  cube.material.color.setHSL(hsl.h, 0.4, 0.7); // pastel color
+  cube.material.color.setHSL(hsl.h, 0.4, 0.7);
 
-  // Rotation
   const elapsed = time - rotationStartTime;
   const t = Math.min(elapsed / rotationDuration, 1);
   const nextIndex = (currentIndex + 1) % sequence.length;
@@ -229,4 +229,5 @@ function animate(time = performance.now()) {
 }
 
 animate();
+
 
