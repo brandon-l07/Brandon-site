@@ -59,6 +59,7 @@ function updateLinks(faceName) {
       elem.style.backgroundColor = "transparent";
       elem.style.color = "white";
 
+      // Make clickable
       elem.style.cursor = "pointer";
       elem.onclick = () => {
         window.location.href = info.href;
@@ -89,10 +90,134 @@ function lerp(a, b, t) {
   return a + (b - a) * t;
 }
 
-// ... (rest of your code unchanged, including music player, animation, etc.)
+// --- Playlist & Audio Setup ---
+
+const playlist = [
+  'Music-Site/Abba - Dancing Queen (Official Music Video Remastered).mp3',
+  'Music-Site/Rick Astley - Together Forever (Official Video) [4K Remaster].mp3',
+  'Music-Site/Dschinghis Khan - Moskau (Starparade 14.06.1979).mp3',
+  'Music-Site/Redbone - Come and Get Your Love (Single Edit - Audio).mp3',
+  'Music-Site/Earth, Wind & Fire - September.mp3',
+  'Music-Site/Earth, Wind & Fire - Lets Groove (Official Audio).mp3',
+  'Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3',
+  'Music-Site/Bon Jovi - Living On A Prayer.mp3',
+  'Music-Site/ABBA - Lay All Your Love On Me Lyrics.mp3',
+  'Music-Site/Bla Bla Bla (Radio Cut).mp3',
+  'Music-Site/Rixton - Me and My Broken Heart (Official Video).mp3'
+];
+
+let currentTrackIndex = 0;
+const audio = new Audio();
+audio.src = playlist[currentTrackIndex];
+audio.loop = false;
+
+const musicBtn = document.getElementById("music-player-btn");
+let isPlaying = false;
+let cubeExpanding = false;
+
+function startCubeExpansion() {
+  cubeExpanding = true;
+}
+
+function stopCubeExpansion() {
+  cubeExpanding = false;
+}
+
+// Update button text to show current track name nicely
+function updateMusicBtnText() {
+  const filename = playlist[currentTrackIndex].split('/').pop();
+  musicBtn.textContent = (isPlaying ? "Pause" : "Play") + " - " + filename;
+}
+
+updateMusicBtnText();
+
+// Play/pause button logic with playlist support
+musicBtn.addEventListener("click", () => {
+  // Resume AudioContext if suspended (required by some browsers)
+  if (audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+
+  if (!isPlaying) {
+    audio.play()
+      .then(() => {
+        isPlaying = true;
+        updateMusicBtnText();
+        startCubeExpansion();
+      })
+      .catch((error) => {
+        console.error("Failed to play audio:", error);
+      });
+  } else {
+    audio.pause();
+    isPlaying = false;
+    updateMusicBtnText();
+    stopCubeExpansion();
+  }
+});
+
+// When track ends, go to next track automatically
+audio.addEventListener('ended', () => {
+  currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+  audio.src = playlist[currentTrackIndex];
+  if (isPlaying) {
+    audio.play();
+  }
+  updateMusicBtnText();
+});
+
+// --- Audio analysis setup for beats and frequency ---
+
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const analyser = audioContext.createAnalyser();
+analyser.fftSize = 256;
+
+const source = audioContext.createMediaElementSource(audio);
+source.connect(analyser);
+analyser.connect(audioContext.destination);
+
+const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+
+// --- Animation variables ---
+
+let cubeScale = 1;
+
+// --- Animate loop ---
 
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
+
+  // Get frequency data
+  analyser.getByteFrequencyData(frequencyData);
+
+  // Calculate average frequency for bass (lower frequencies)
+  let bassSum = 0;
+  for (let i = 0; i < frequencyData.length / 4; i++) {
+    bassSum += frequencyData[i];
+  }
+  const bassAvg = bassSum / (frequencyData.length / 4);
+
+  // Resize cube based on bass and cubeExpanding state
+  if (cubeExpanding) {
+    cubeScale += bassAvg / 1000; // scale growth influenced by bass average
+    if (cubeScale > 1.5) cubeScale = 1.5;
+  } else {
+    cubeScale -= 0.01;
+    if (cubeScale < 1) cubeScale = 1;
+  }
+  cube.scale.set(cubeScale, cubeScale, cubeScale);
+
+  // Recolor cube based on overall frequency
+  let freqSum = 0;
+  for (let i = 0; i < frequencyData.length; i++) {
+    freqSum += frequencyData[i];
+  }
+  const freqAvg = freqSum / frequencyData.length;
+
+  // Map frequency average to color hue (0 to 360 degrees)
+  const hue = (freqAvg / 255) * 360;
+  const color = new THREE.Color(`hsl(${hue}, 100%, 50%)`);
+  cube.material.color = color;
 
   // Rotation
   const elapsed = time - rotationStartTime;
@@ -113,19 +238,5 @@ function animate(time = performance.now()) {
 }
 
 animate();
-
-
-// ====== Loading Screen Fade Out Logic ======
-
-const loadingScreen = document.getElementById("loading-screen");
-const mainContent = document.getElementById("main-content");
-
-if (loadingScreen && mainContent) {
-  loadingScreen.classList.add("fade-out");
-  loadingScreen.addEventListener("transitionend", () => {
-    loadingScreen.style.display = "none";
-    mainContent.style.display = "block";
-  }, { once: true });
-}
 
 
