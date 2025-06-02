@@ -1,0 +1,139 @@
+body {
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+  font-family: 'Roboto Condensed', sans-serif;
+}
+
+canvas {
+  display: block;
+}
+
+h1 {
+  color: white;
+  font-weight: 300;
+  font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  user-select: none;
+  margin: 0;
+}
+
+/* Social Media Buttons */
+#instagram-container,
+#x-container {
+  position: fixed;
+  bottom: 3.5rem;
+  transform: translateX(-50%);
+  z-index: 15;
+  user-select: none;
+}
+
+#instagram-container {
+  left: 49%;
+}
+
+#x-container {
+  left: 52%;
+}
+
+#instagram-container img,
+#x-container img {
+  width: 16px;
+  height: 16px;
+  filter: none;
+  cursor: pointer;
+  display: block;
+}
+
+/* Nav Boxes */
+.nav {
+  position: absolute;
+  font-size: 1rem;
+  text-transform: uppercase;
+  padding: 0.5rem;
+  color: black;
+  background: black;
+  border-radius: 4px;
+  width: 110px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: all 0.4s ease-in-out;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#top-left { top: 1rem; left: 1rem; }
+#top-right { top: 1rem; right: 1rem; }
+#bottom-left { bottom: 1rem; left: 1rem; }
+#bottom-right { bottom: 1rem; right: 1rem; }
+
+.nav.visible {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* Music Button */
+#music-player-btn {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-family: 'Roboto Condensed', sans-serif;
+  cursor: pointer;
+  border-radius: 25px;
+  transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+  backdrop-filter: blur(10px);
+}
+
+#music-player-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+#music-player-btn svg {
+  fill: white;
+  width: 20px;
+  height: 20px;
+}
+
+/* Loading Screen */
+#loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  z-index: 9999;
+  font-family: 'Roboto Condensed', sans-serif;
+  transition: opacity 1s ease;
+}
+
+#loading-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}

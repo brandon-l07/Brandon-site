@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400&display=swap" rel="stylesheet" />
+  <title>Brandon Lu - Official Site</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Brandon Lu</h1>
+
+  <div class="nav" id="top-left">About</div>
+  <div class="nav" id="top-right">Contact</div>
+  <div class="nav" id="bottom-left">Projects</div>
+  <div class="nav" id="bottom-right">News</div>
+
+  <div id="loading-screen">
+    <span>Entering the Zone...</span>
+  </div>
+
+  <div id="instagram-container">
+    <a href="https://www.instagram.com/brandonl.off/" target="_blank" rel="noopener noreferrer">
+      <img src="https://img.icons8.com/m_outlined/512/FFFFFF/instagram-new--v2.png" alt="Instagram logo" />
+    </a>
+  </div>
+
+  <!-- Uncomment if you want the X (Twitter) logo visible -->
+  <!--
+  <div id="x-container">
+    <a href="https://x.com/avg_genzcsve" target="_blank" rel="noopener noreferrer">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/X_logo_2023_%28white%29.png" alt="X logo" />
+    </a>
+  </div>
+  -->
+
+  <button id="music-player-btn" aria-label="Play music">
+    <svg id="play-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 5v14l11-7z"></path>
+    </svg>
+    <svg id="pause-icon" viewBox="0 0 24 24" aria-hidden="true" style="display:none;">
+      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
+    </svg>
+    Curated by Brandon
+  </button>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
