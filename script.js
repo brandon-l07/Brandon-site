@@ -33,6 +33,26 @@ const navElems = {
   "bottom-right": document.getElementById("bottom-right"),
 };
 
+navElems["top-left"].textContent = "About";
+navElems["top-left"].setAttribute("href", "about.html");
+
+navElems["top-right"].textContent = "Blog";
+navElems["top-right"].setAttribute("href", "blog.html");
+
+navElems["bottom-left"].textContent = "Projects";
+navElems["bottom-left"].setAttribute("href", "projects.html");
+
+navElems["bottom-right"].textContent = "Contact";
+navElems["bottom-right"].setAttribute("href", "contact.html");
+
+for (const corner in navElems) {
+  const elem = navElems[corner];
+  elem.classList.add("visible");
+  elem.style.backgroundColor = "transparent";
+  elem.style.color = "white";
+  elem.style.pointerEvents = "auto";
+}
+
 const faceToNav = {
   right: { corner: "top-left", text: "About" },
   front: { corner: "bottom-left", text: "Projects" },
