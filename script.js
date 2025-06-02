@@ -80,6 +80,16 @@ function lerp(a, b, t) {
   return a + (b - a) * t;
 }
 
+// Helper to average frequency bins in range [start, end]
+function getAverageVolume(dataArray, start, end) {
+  let sum = 0;
+  let count = end - start + 1;
+  for (let i = start; i <= end; i++) {
+    sum += dataArray[i];
+  }
+  return sum / count;
+}
+
 // Music Player
 const playlist = [
   'Music-Site/Abba - Dancing Queen (Official Music Video Remastered).mp3',
@@ -119,6 +129,9 @@ analyser.fftSize = 256;
 const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
 
+// Flag to track if audio is playing
+let audioPlaying = false;
+
 // Play/pause toggle
 function togglePlayPause() {
   if (audioCtx.state === 'suspended') {
@@ -127,12 +140,14 @@ function togglePlayPause() {
 
   if (audio.paused) {
     audio.play();
+    audioPlaying = true; // Start audio-driven effects
     btn.textContent = 'Curated by Brandon';
     btn.prepend(pauseIcon);
     pauseIcon.style.display = 'inline';
     playIcon.style.display = 'none';
   } else {
     audio.pause();
+    audioPlaying = false; // Stop audio-driven effects
     btn.textContent = 'Play';
     btn.prepend(playIcon);
     playIcon.style.display = 'inline';
@@ -158,43 +173,11 @@ window.addEventListener("load", function () {
   }, 10000);
 });
 
-// Helper to get average volume in frequency range
-function getAverageVolume(data, start, end) {
-  let sum = 0;
-  for (let i = start; i <= end; i++) {
-    sum += data[i];
-  }
-  return sum / (end - start + 1);
-}
-
 // Animation loop
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
 
-  // Audio analysis
-  analyser.getByteFrequencyData(dataArray);
-
-  // Map frequency bands to RGB color channels
-  const low = getAverageVolume(dataArray, 0, 10);     // Bass frequencies
-  const mid = getAverageVolume(dataArray, 11, 40);    // Mid frequencies
-  const high = getAverageVolume(dataArray, 41, bufferLength - 1);  // High frequencies
-
-  // Normalize to 0-1 range
-  const targetColor = new THREE.Color(low / 255, mid / 255, high / 255);
-
-  // Smoothly fade color (lerp factor controls fade speed)
-  cube.material.color.lerp(targetColor, 0.1);
-
-  // Also scale cube based on average volume for visual interest
-  let sum = 0;
-  for (let i = 0; i < bufferLength; i++) {
-    sum += dataArray[i];
-  }
-  const avg = sum / bufferLength;
-  const scale = 1 + avg / 256; // Adjust divisor to tune sensitivity
-  cube.scale.set(scale, scale, scale);
-
-  // Rotation logic
+  // Always rotate cube on sequence timer
   const elapsed = time - rotationStartTime;
   const t = Math.min(elapsed / rotationDuration, 1);
   const nextIndex = (currentIndex + 1) % sequence.length;
@@ -208,9 +191,39 @@ function animate(time = performance.now()) {
     rotationStartTime = time;
   }
 
+  // Update nav links
   updateLinks(sequence[currentIndex].face);
+
+  if (audioPlaying) {
+    analyser.getByteFrequencyData(dataArray);
+
+    // Split frequency ranges for RGB
+    const low = getAverageVolume(dataArray, 0, 10);
+    const mid = getAverageVolume(dataArray, 11, 40);
+    const high = getAverageVolume(dataArray, 41, bufferLength - 1);
+
+    const targetColor = new THREE.Color(low / 255, mid / 255, high / 255);
+
+    // Smoothly lerp color to target based on freq ranges
+    cube.material.color.lerp(targetColor, 0.1);
+
+    // Scale cube based on average volume
+    let sum = 0;
+    for (let i = 0; i < bufferLength; i++) {
+      sum += dataArray[i];
+    }
+    const avg = sum / bufferLength;
+    const scale = 1 + avg / 256;
+    cube.scale.set(scale, scale, scale);
+  } else {
+    // Smoothly fade color back to base and scale back to normal when not playing
+    cube.material.color.lerp(new THREE.Color(0x00aaff), 0.05);
+    cube.scale.lerp(new THREE.Vector3(1, 1, 1), 0.05);
+  }
+
   renderer.render(scene, camera);
 }
 
 animate();
+
 
