@@ -120,6 +120,7 @@ function shuffle(array) {
       'Music-Site/Redbone - Come and Get Your Love (Single Edit - Audio).mp3',
       'Music-Site/Earth, Wind & Fire - September.mp3',
       'Music-Site/Earth, Wind & Fire - Lets Groove (Official Audio).mp3',
+      'Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3'
     ];
 
 shuffle(playlist); 
