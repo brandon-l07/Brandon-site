@@ -106,8 +106,7 @@ const playlist = [
   'Music-Site/Rick Astley - Together Forever (Official Video) [4K Remaster].mp3',
   'Music-Site/Dschinghis Khan - Moskau (Starparade 14.06.1979).mp3',
   'Music-Site/Redbone - Come and Get Your Love (Single Edit - Audio).mp3',
-  'Music-Site/Earth, Wind & Fire - September.mp3',
-  'Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3',
+  'Music-Site/Earth, Wind & Fire - September.mp3'
 ];
 
 function shuffle(array) {
