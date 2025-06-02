@@ -34,12 +34,12 @@ const navElems = {
 };
 
 const faceToNav = {
-  right: { corner: "top-left", text: "About" url: "about.html"},
-  front: { corner: "bottom-left", text: "Projects" url: "about.html"},
-  top: { corner: "top-right", text: "Blog" url: "about.html"},
-  back: { corner: "bottom-right", text: "Contact" url: "about.html"},
-  left: { corner: "top-left", text: "About" url: "about.html"},
-  bottom: { corner: "bottom-right", text: "Contact" url: "about.html"}
+  right: { corner: "top-left", text: "About"},
+  front: { corner: "bottom-left", text: "Projects"},
+  top: { corner: "top-right", text: "Blog"},
+  back: { corner: "bottom-right", text: "Contact"},
+  left: { corner: "top-left", text: "About"},
+  bottom: { corner: "bottom-right", text: "Contact"}
 };
 
 const faceRotations = {
