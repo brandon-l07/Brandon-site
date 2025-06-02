@@ -135,7 +135,6 @@ function togglePlayPause() {
     btn.prepend(pauseIcon);
     pauseIcon.style.display = 'inline';
     playIcon.style.display = 'none';
-    // Reset rotation start time to smoothly transition when play starts
     rotationStartTime = performance.now();
   } else {
     audio.pause();
@@ -158,7 +157,6 @@ audio.addEventListener('ended', () => {
 window.addEventListener("load", function () {
   const loadingScreen = document.getElementById("loading-screen");
   loadingScreen.classList.add("fade-out");
-
   setTimeout(() => {
     loadingScreen.style.display = "none";
   }, 10000);
@@ -180,8 +178,7 @@ function animate(time = performance.now()) {
   const scale = 1 + avg / 256;
   cube.scale.set(scale, scale, scale);
 
-  // --- COLOR UPDATE ---
-  // Smooth color fade based on pitch but more dynamic when playing
+  // --- COLOR UPDATE (Smooth & Responsive) ---
   let highSum = 0;
   for (let i = Math.floor(bufferLength * 0.75); i < bufferLength; i++) {
     highSum += dataArray[i];
@@ -192,31 +189,20 @@ function animate(time = performance.now()) {
   const hsl = {};
   currentColor.getHSL(hsl);
 
-  // When music playing, increase lerp speed and force periodic hue shift
-  let lerpSpeed = 0.05;
+  let lerpSpeed = 0.08;
   let forcedHueShift = 0;
 
   if (!audio.paused) {
-    // Faster color changes when music playing
-    lerpSpeed = 0.2;
-
-    // Add a subtle oscillation to hue based on time to force shifts even when freq is steady
-    forcedHueShift = 0.1 * Math.sin(time * 0.02 * Math.PI * 2); // oscillates -0.1 to 0.1 roughly every 50 frames
+    lerpSpeed = 0.12;
+    forcedHueShift = 0.02 * Math.sin(time * 0.001); // Very subtle oscillation
   }
 
-  // Map frequency to hue 0–1 (0–360 degrees / 360)
-  let targetHue = Math.min(1, highAvg * 3 / 360);
+  let targetHue = Math.min(1, highAvg * 3 / 360) + forcedHueShift;
+  targetHue = (targetHue + 1) % 1; // Wrap within 0–1
 
-  // Add forced oscillation
-  targetHue += forcedHueShift;
-  // Clamp to 0–1 range
-  if (targetHue > 1) targetHue = 1;
-  if (targetHue < 0) targetHue = 0;
-
-  // Lerp current hue toward target hue
   const newHue = hsl.h + (targetHue - hsl.h) * lerpSpeed;
   cube.material.color.setHSL(newHue, 1, 0.5);
-  // --- END COLOR UPDATE ---
+  // -----------------------------------------
 
   // --- SMOOTH LERP ROTATION TRANSITION ---
   const elapsed = time - rotationStartTime;
@@ -238,6 +224,7 @@ function animate(time = performance.now()) {
 }
 
 animate();
+
 
 
 
