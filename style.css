@@ -165,6 +165,14 @@ h1 {
 
 
 /* Loading Screen */
+#main-content {
+  display: none; /* hide main content initially */
+}
+
+#main-content.visible {
+  display: block;
+}
+
 #loading-screen {
   position: fixed;
   top: 0;
