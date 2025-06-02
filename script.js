@@ -33,14 +33,13 @@ const navElems = {
   "bottom-right": document.getElementById("bottom-right"),
 };
 
-// Map cube face to nav corner, text, and link
 const faceToNav = {
-  right: { corner: "top-left", text: "About", url: "about.html" },
-  front: { corner: "bottom-left", text: "Projects", url: "projects.html" },
-  top: { corner: "top-right", text: "Blog", url: "blog.html" },
-  back: { corner: "bottom-right", text: "Contact", url: "contact.html" },
-  left: { corner: "top-left", text: "About", url: "about.html" },
-  bottom: { corner: "bottom-right", text: "Contact", url: "contact.html" }
+  right: { corner: "top-left", text: "<a href='#about'>About</a>" },
+  front: { corner: "bottom-left", text: "<a href='#projects'>Projects</a>" },
+  top: { corner: "top-right", text: "<a href='#blog'>Blog</a>" },
+  back: { corner: "bottom-right", text: "<a href='#contact'>Contact</a>" },
+  left: { corner: "top-left", text: "<a href='#about'>About</a>" },
+  bottom: { corner: "bottom-right", text: "<a href='#contact'>Contact</a>" }
 };
 
 const faceRotations = {
@@ -53,22 +52,15 @@ const faceRotations = {
 function updateLinks(faceName) {
   for (const corner in navElems) {
     if (faceName in faceToNav && corner === faceToNav[faceName].corner) {
-      const { text, url } = faceToNav[faceName];
-      const elem = navElems[corner];
-      elem.textContent = text;
-      elem.classList.add("visible");
-      elem.style.backgroundColor = "transparent";
-      elem.style.color = "white";
-      elem.setAttribute("href", url);
-      elem.style.pointerEvents = "auto";
+      navElems[corner].innerHTML = faceToNav[faceName].text;
+      navElems[corner].classList.add("visible");
+      navElems[corner].style.backgroundColor = "transparent";
+      navElems[corner].style.color = "white";
     } else {
-      const elem = navElems[corner];
-      elem.textContent = "";
-      elem.classList.remove("visible");
-      elem.style.backgroundColor = "black";
-      elem.style.color = "black";
-      elem.removeAttribute("href");
-      elem.style.pointerEvents = "none";
+      navElems[corner].innerHTML = "";
+      navElems[corner].classList.remove("visible");
+      navElems[corner].style.backgroundColor = "black";
+      navElems[corner].style.color = "black";
     }
   }
 }
@@ -96,8 +88,8 @@ const playlist = [
   'Music-Site/Redbone - Come and Get Your Love (Single Edit - Audio).mp3',
   'Music-Site/Earth, Wind & Fire - September.mp3',
   'Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3',
-  'Music-Site/Bla Bla Bla (Radio Cut).mp3'
 ];
+
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -108,10 +100,16 @@ shuffle(playlist);
 
 let currentTrackIndex = 0;
 const audio = new Audio();
+audio.src = playlist[currentTrackIndex];
 audio.preload = 'auto';
 audio.volume = 0.3;
-audio.src = playlist[currentTrackIndex];
 
+const btn = document.getElementById('music-player-btn');
+const playButton = document.getElementById("play-button");
+const pauseIcon = document.getElementById('pause-icon');
+const playIcon = document.getElementById('play-icon');
+
+// Web Audio API setup
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const source = audioCtx.createMediaElementSource(audio);
 const analyser = audioCtx.createAnalyser();
@@ -121,10 +119,7 @@ analyser.fftSize = 256;
 const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
 
-const btn = document.getElementById('music-player-btn');
-const pauseIcon = document.getElementById('pause-icon');
-const playIcon = document.getElementById('play-icon');
-
+// Play/pause toggle
 function togglePlayPause() {
   if (audioCtx.state === 'suspended') {
     audioCtx.resume();
@@ -156,20 +151,17 @@ audio.addEventListener('ended', () => {
 window.addEventListener("load", function () {
   const loadingScreen = document.getElementById("loading-screen");
   loadingScreen.classList.add("fade-out");
-
   setTimeout(() => {
     loadingScreen.style.display = "none";
   }, 10000);
 });
 
-// Color fading
 let currentRGB = { r: 0.0, g: 0.67, b: 1.0 };
 let targetRGB = { r: 0.0, g: 0.67, b: 1.0 };
 const fadeSpeed = 0.01;
 
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
-
   analyser.getByteFrequencyData(dataArray);
 
   let sum = 0;
@@ -184,18 +176,23 @@ function animate(time = performance.now()) {
   for (let i = 0; i < bufferLength / 3; i++) {
     lowSum += dataArray[i];
   }
+  let lowAvg = lowSum / (bufferLength / 3);
+
   let midSum = 0;
   for (let i = Math.floor(bufferLength / 3); i < 2 * bufferLength / 3; i++) {
     midSum += dataArray[i];
   }
+  let midAvg = midSum / (bufferLength / 3);
+
   let highSum = 0;
   for (let i = Math.floor(2 * bufferLength / 3); i < bufferLength; i++) {
     highSum += dataArray[i];
   }
+  let highAvg = highSum / (bufferLength / 3);
 
-  const normLow = Math.min(lowSum / (bufferLength / 3) / 256, 1);
-  const normMid = Math.min(midSum / (bufferLength / 3) / 256, 1);
-  const normHigh = Math.min(highSum / (bufferLength / 3) / 256, 1);
+  const normLow = Math.min(lowAvg / 256, 1);
+  const normMid = Math.min(midAvg / 256, 1);
+  const normHigh = Math.min(highAvg / 256, 1);
 
   targetRGB.r = lerp(currentRGB.r, normLow, 0.05);
   targetRGB.g = lerp(currentRGB.g, normMid, 0.05);
@@ -209,7 +206,9 @@ function animate(time = performance.now()) {
   const hsl = {};
   col.getHSL(hsl);
 
-  cube.material.color.setHSL(hsl.h, 0.4, 0.7);
+  const pastelSaturation = 0.4;
+  const pastelLightness = 0.7;
+  cube.material.color.setHSL(hsl.h, pastelSaturation, pastelLightness);
 
   const elapsed = time - rotationStartTime;
   const t = Math.min(elapsed / rotationDuration, 1);
@@ -229,5 +228,3 @@ function animate(time = performance.now()) {
 }
 
 animate();
-
-
