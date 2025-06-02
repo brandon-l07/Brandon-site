@@ -46,7 +46,8 @@ h1 {
 }
 
 #instagram-container img,
-#linkdln-container img {
+#linkdln-container img,
+#x-container img{
   width: 16px;
   height: 16px;
   filter: none;
