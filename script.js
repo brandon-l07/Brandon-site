@@ -112,6 +112,7 @@ audio.volume = 0.3;
 const btn = document.getElementById('music-player-btn');
 const playButton = document.getElementById("play-button");
 const pauseIcon = document.getElementById('pause-icon');
+const playIcon = document.getElementById('play-icon'); // added for togglePlayPause fix
 
 // Web Audio API setup
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -163,6 +164,11 @@ window.addEventListener("load", function () {
   }, 10000);
 });
 
+// --- Color fading variables to keep track of current RGB target & current values ---
+let currentRGB = { r: 0.0, g: 0.67, b: 1.0 }; // initial color approx 0x00aaff normalized
+let targetRGB = { r: 0.0, g: 0.67, b: 1.0 };
+const fadeSpeed = 0.01; // smaller is slower fade
+
 // Animation loop
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
@@ -178,33 +184,55 @@ function animate(time = performance.now()) {
   const scale = 1 + avg / 256;
   cube.scale.set(scale, scale, scale);
 
-  // Pastel/Vaporwave Color Update
+  // --- Frequency Bands to Color Channels ---
+  // Map low, mid, high frequency ranges to R, G, B channels smoothly
+  // Low freq: 0 to 1/3 buffer
+  let lowSum = 0;
+  for (let i = 0; i < bufferLength / 3; i++) {
+    lowSum += dataArray[i];
+  }
+  let lowAvg = lowSum / (bufferLength / 3);
+
+  // Mid freq: 1/3 to 2/3 buffer
+  let midSum = 0;
+  for (let i = Math.floor(bufferLength / 3); i < 2 * bufferLength / 3; i++) {
+    midSum += dataArray[i];
+  }
+  let midAvg = midSum / (bufferLength / 3);
+
+  // High freq: 2/3 to end
   let highSum = 0;
-  for (let i = Math.floor(bufferLength * 0.75); i < bufferLength; i++) {
+  for (let i = Math.floor(2 * bufferLength / 3); i < bufferLength; i++) {
     highSum += dataArray[i];
   }
-  const highAvg = highSum / (bufferLength * 0.25);
+  let highAvg = highSum / (bufferLength / 3);
 
-  const currentColor = cube.material.color;
+  // Normalize to 0-1
+  const normLow = Math.min(lowAvg / 256, 1);
+  const normMid = Math.min(midAvg / 256, 1);
+  const normHigh = Math.min(highAvg / 256, 1);
+
+  // Set target RGB based on these normalized values, pastel style (keep saturation and lightness fixed)
+  targetRGB.r = lerp(currentRGB.r, normLow, 0.05);   // slowly update target for smoothing
+  targetRGB.g = lerp(currentRGB.g, normMid, 0.05);
+  targetRGB.b = lerp(currentRGB.b, normHigh, 0.05);
+
+  // Smooth fade from currentRGB to targetRGB
+  currentRGB.r += (targetRGB.r - currentRGB.r) * fadeSpeed;
+  currentRGB.g += (targetRGB.g - currentRGB.g) * fadeSpeed;
+  currentRGB.b += (targetRGB.b - currentRGB.b) * fadeSpeed;
+
+  // Convert currentRGB to HSL for pastel
+  // Use THREE.Color for conversion convenience:
+  const col = new THREE.Color(currentRGB.r, currentRGB.g, currentRGB.b);
   const hsl = {};
-  currentColor.getHSL(hsl);
+  col.getHSL(hsl);
 
-  let lerpSpeed = 0.1;
-  let forcedHueShift = 0;
+  // Pastel tweak: fix saturation and lightness to soft pastel values
+  const pastelSaturation = 0.4;
+  const pastelLightness = 0.7;
 
-  if (!audio.paused) {
-    lerpSpeed = 0.12;
-    forcedHueShift = 0.015 * Math.sin(time * 0.001);
-  }
-
-  let targetHue = Math.min(1, highAvg * 3 / 360) + forcedHueShift;
-  targetHue = (targetHue + 1) % 1;
-
-  const newHue = hsl.h + (targetHue - hsl.h) * lerpSpeed;
-  const targetSaturation = 0.4; // pastel-like saturation
-  const targetLightness = 0.7;  // soft but visible
-
-  cube.material.color.setHSL(newHue, targetSaturation, targetLightness);
+  cube.material.color.setHSL(hsl.h, pastelSaturation, pastelLightness);
 
   // Rotation
   const elapsed = time - rotationStartTime;
@@ -225,5 +253,6 @@ function animate(time = performance.now()) {
 }
 
 animate();
+
 
 
