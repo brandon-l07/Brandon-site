@@ -106,4 +106,65 @@ function animate(time = performance.now()) {
 animate();
 
 // Music Player (add rest of this if you have it)
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+    // Your playlist - add your own songs here
+    const playlist = [
+      '/Users/newuser/Documents/Music-Site/Abba - Dancing Queen (Official Music Video Remastered).mp3',
+      '/Users/newuser/Documents/Music-Site/Rick Astley - Together Forever (Official Video) [4K Remaster].mp3',
+      '/Users/newuser/Documents/Music-Site/Dschinghis Khan - Moskau (Starparade 14.06.1979).mp3',
+      '/Users/newuser/Documents/Music-Site/Redbone - Come and Get Your Love (Single Edit - Audio).mp3',
+      '/Users/newuser/Documents/Music-Site/Earth, Wind & Fire - September.mp3'
+    ];
+
+shuffle(playlist); 
+
+    let currentTrackIndex = 0;
+    const audio = new Audio();
+    audio.src = playlist[currentTrackIndex];
+    audio.preload = 'auto';
+    audio.volume = 0.3;
+
+    const btn = document.getElementById('music-player-btn');
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+
+    // Play/pause toggle function
+    function togglePlayPause() {
+      if (audio.paused) {
+        audio.play();
+        btn.textContent = 'Curated by Brandon';
+        btn.prepend(pauseIcon);
+        pauseIcon.style.display = 'inline';
+        playIcon.style.display = 'none';
+      } else {
+        audio.pause();
+        btn.textContent = 'Play';
+        btn.prepend(playIcon);
+        playIcon.style.display = 'inline';
+        pauseIcon.style.display = 'none';
+      }
+    }
+
+    btn.addEventListener('click', togglePlayPause);
+
+    // When song ends, move to next and loop
+    audio.addEventListener('ended', () => {
+      currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+      audio.src = playlist[currentTrackIndex];
+      audio.play();
+    });
+
 // function shuffle(array) { ... }
+window.addEventListener("load", function () {
+  const loadingScreen = document.getElementById("loading-screen");
+  loadingScreen.classList.add("fade-out");
+
+  setTimeout(() => {
+    loadingScreen.style.display = "none";
+  }, 10000); // Match transition duration
+});
