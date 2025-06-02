@@ -111,6 +111,20 @@ const audio = new Audio();
 audio.src = playlist[currentTrackIndex];
 audio.loop = false;
 
+// --- Audio analysis setup for beats and frequency ---
+
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const analyser = audioContext.createAnalyser();
+analyser.fftSize = 256;
+
+const source = audioContext.createMediaElementSource(audio);
+source.connect(analyser);
+analyser.connect(audioContext.destination);
+
+const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+
+// --- Nav Elements continued ---
+
 const musicBtn = document.getElementById("music-player-btn");
 let isPlaying = false;
 let cubeExpanding = false;
@@ -133,27 +147,27 @@ updateMusicBtnText();
 
 // Play/pause button logic with playlist support
 musicBtn.addEventListener("click", () => {
-  // Resume AudioContext if suspended (required by some browsers)
-  if (audioContext.state === 'suspended') {
-    audioContext.resume();
-  }
-
-  if (!isPlaying) {
-    audio.play()
-      .then(() => {
-        isPlaying = true;
-        updateMusicBtnText();
-        startCubeExpansion();
-      })
-      .catch((error) => {
-        console.error("Failed to play audio:", error);
-      });
-  } else {
-    audio.pause();
-    isPlaying = false;
-    updateMusicBtnText();
-    stopCubeExpansion();
-  }
+  // Resume AudioContext on user gesture first (required by browsers)
+  audioContext.resume().then(() => {
+    if (!isPlaying) {
+      audio.play()
+        .then(() => {
+          isPlaying = true;
+          updateMusicBtnText();
+          startCubeExpansion();
+        })
+        .catch((error) => {
+          console.error("Failed to play audio:", error);
+        });
+    } else {
+      audio.pause();
+      isPlaying = false;
+      updateMusicBtnText();
+      stopCubeExpansion();
+    }
+  }).catch(err => {
+    console.error("Failed to resume audio context:", err);
+  });
 });
 
 // When track ends, go to next track automatically
@@ -165,18 +179,6 @@ audio.addEventListener('ended', () => {
   }
   updateMusicBtnText();
 });
-
-// --- Audio analysis setup for beats and frequency ---
-
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-const analyser = audioContext.createAnalyser();
-analyser.fftSize = 256;
-
-const source = audioContext.createMediaElementSource(audio);
-source.connect(analyser);
-analyser.connect(audioContext.destination);
-
-const frequencyData = new Uint8Array(analyser.frequencyBinCount);
 
 // --- Animation variables ---
 
@@ -238,5 +240,6 @@ function animate(time = performance.now()) {
 }
 
 animate();
+
 
 
