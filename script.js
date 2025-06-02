@@ -25,7 +25,7 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Nav Elements
+// Nav Elements (permanently visible)
 const navElems = {
   "top-left": document.getElementById("top-left"),
   "top-right": document.getElementById("top-right"),
@@ -33,16 +33,27 @@ const navElems = {
   "bottom-right": document.getElementById("bottom-right"),
 };
 
-// Map cube face to nav corner, text, and link
-const faceToNav = {
-  right: { corner: "top-left", text: "About", url: "about.html" },
-  front: { corner: "bottom-left", text: "Projects", url: "projects.html" },
-  top: { corner: "top-right", text: "Blog", url: "blog.html" },
-  back: { corner: "bottom-right", text: "Contact", url: "contact.html" },
-  left: { corner: "top-left", text: "About", url: "about.html" },
-  bottom: { corner: "bottom-right", text: "Contact", url: "contact.html" }
-};
+navElems["top-left"].textContent = "About";
+navElems["top-left"].setAttribute("href", "about.html");
 
+navElems["top-right"].textContent = "Blog";
+navElems["top-right"].setAttribute("href", "blog.html");
+
+navElems["bottom-left"].textContent = "Projects";
+navElems["bottom-left"].setAttribute("href", "projects.html");
+
+navElems["bottom-right"].textContent = "Contact";
+navElems["bottom-right"].setAttribute("href", "contact.html");
+
+for (const corner in navElems) {
+  const elem = navElems[corner];
+  elem.classList.add("visible");
+  elem.style.backgroundColor = "transparent";
+  elem.style.color = "white";
+  elem.style.pointerEvents = "auto";
+}
+
+// Face rotations
 const faceRotations = {
   right: { x: 0, y: -Math.PI / 2 },
   top: { x: Math.PI / 2, y: 0 },
@@ -50,34 +61,11 @@ const faceRotations = {
   back: { x: 0, y: Math.PI },
 };
 
-function updateLinks(faceName) {
-  for (const corner in navElems) {
-    if (faceName in faceToNav && corner === faceToNav[faceName].corner) {
-      const { text, url } = faceToNav[faceName];
-      const elem = navElems[corner];
-      elem.textContent = text;
-      elem.classList.add("visible");
-      elem.style.backgroundColor = "transparent";
-      elem.style.color = "white";
-      elem.setAttribute("href", url);
-      elem.style.pointerEvents = "auto";
-    } else {
-      const elem = navElems[corner];
-      elem.textContent = "";
-      elem.classList.remove("visible");
-      elem.style.backgroundColor = "black";
-      elem.style.color = "black";
-      elem.removeAttribute("href");
-      elem.style.pointerEvents = "none";
-    }
-  }
-}
-
 const sequence = [
-  { face: "right", label: "About" },
-  { face: "top", label: "News" },
-  { face: "front", label: "Projects" },
-  { face: "back", label: "Contact" },
+  { face: "right" }, // About
+  { face: "top" },   // Blog
+  { face: "front" }, // Projects
+  { face: "back" },  // Contact
 ];
 
 let currentIndex = 0;
@@ -98,6 +86,7 @@ const playlist = [
   'Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3',
   'Music-Site/Bla Bla Bla (Radio Cut).mp3'
 ];
+
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -153,10 +142,10 @@ audio.addEventListener('ended', () => {
   audio.play();
 });
 
+// Loading screen
 window.addEventListener("load", function () {
   const loadingScreen = document.getElementById("loading-screen");
   loadingScreen.classList.add("fade-out");
-
   setTimeout(() => {
     loadingScreen.style.display = "none";
   }, 10000);
@@ -208,7 +197,6 @@ function animate(time = performance.now()) {
   const col = new THREE.Color(currentRGB.r, currentRGB.g, currentRGB.b);
   const hsl = {};
   col.getHSL(hsl);
-
   cube.material.color.setHSL(hsl.h, 0.4, 0.7);
 
   const elapsed = time - rotationStartTime;
@@ -224,9 +212,9 @@ function animate(time = performance.now()) {
     rotationStartTime = time;
   }
 
-  updateLinks(sequence[currentIndex].face);
   renderer.render(scene, camera);
 }
 
 animate();
+
 
