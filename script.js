@@ -192,20 +192,8 @@ function animate(time = performance.now()) {
   const hsl = {};
   currentColor.getHSL(hsl);
 
-  // Additional fast-changing hue offset based on mid-frequency bin + time oscillation
-  const midFreqIndex = Math.floor(bufferLength / 4);
-  const midFreqValue = dataArray[midFreqIndex];
-  const timeSec = time / 1000;
-
-  // Fast hue offset between 0 and about 0.5 (hue normalized 0-1 scale)
-  const fastHueOffset = ((midFreqValue / 256) * 0.3) + ((Math.sin(timeSec * 10) + 1) / 2 * 0.2);
-
-  // Calculate new hue with lerp smoothing and wrap around 1
-  let targetHueNormalized = targetHue / 360;
-  targetHueNormalized = (targetHueNormalized + fastHueOffset) % 1;
-
   const lerpSpeed = 0.05;
-  const newHue = hsl.h + (targetHueNormalized - hsl.h) * lerpSpeed;
+  const newHue = hsl.h + (targetHue / 360 - hsl.h) * lerpSpeed;
   cube.material.color.setHSL(newHue, 1, 0.5);
 
   // --- SMOOTH LERP ROTATION TRANSITION ---
@@ -228,5 +216,6 @@ function animate(time = performance.now()) {
 }
 
 animate();
+
 
 
