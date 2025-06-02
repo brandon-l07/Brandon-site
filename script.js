@@ -25,7 +25,7 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Nav Elements (permanently visible)
+// Nav Elements
 const navElems = {
   "top-left": document.getElementById("top-left"),
   "top-right": document.getElementById("top-right"),
@@ -33,27 +33,15 @@ const navElems = {
   "bottom-right": document.getElementById("bottom-right"),
 };
 
-navElems["top-left"].textContent = "About";
-navElems["top-left"].setAttribute("href", "about.html");
+const faceToNav = {
+  right: { corner: "top-left", text: "About" },
+  front: { corner: "bottom-left", text: "Projects" },
+  top: { corner: "top-right", text: "Blog" },
+  back: { corner: "bottom-right", text: "Contact" },
+  left: { corner: "top-left", text: "About" },
+  bottom: { corner: "bottom-right", text: "Contact" }
+};
 
-navElems["top-right"].textContent = "Blog";
-navElems["top-right"].setAttribute("href", "blog.html");
-
-navElems["bottom-left"].textContent = "Projects";
-navElems["bottom-left"].setAttribute("href", "projects.html");
-
-navElems["bottom-right"].textContent = "Contact";
-navElems["bottom-right"].setAttribute("href", "contact.html");
-
-for (const corner in navElems) {
-  const elem = navElems[corner];
-  elem.classList.add("visible");
-  elem.style.backgroundColor = "transparent";
-  elem.style.color = "white";
-  elem.style.pointerEvents = "auto";
-}
-
-// Face rotations
 const faceRotations = {
   right: { x: 0, y: -Math.PI / 2 },
   top: { x: Math.PI / 2, y: 0 },
@@ -61,11 +49,27 @@ const faceRotations = {
   back: { x: 0, y: Math.PI },
 };
 
+function updateLinks(faceName) {
+  for (const corner in navElems) {
+    if (faceName in faceToNav && corner === faceToNav[faceName].corner) {
+      navElems[corner].textContent = faceToNav[faceName].text;
+      navElems[corner].classList.add("visible");
+      navElems[corner].style.backgroundColor = "transparent";
+      navElems[corner].style.color = "white";
+    } else {
+      navElems[corner].textContent = "";
+      navElems[corner].classList.remove("visible");
+      navElems[corner].style.backgroundColor = "black";
+      navElems[corner].style.color = "black";
+    }
+  }
+}
+
 const sequence = [
-  { face: "right" }, // About
-  { face: "top" },   // Blog
-  { face: "front" }, // Projects
-  { face: "back" },  // Contact
+  { face: "right", label: "About" },
+  { face: "top", label: "News" },
+  { face: "front", label: "Projects" },
+  { face: "back", label: "Contact" },
 ];
 
 let currentIndex = 0;
@@ -83,8 +87,12 @@ const playlist = [
   'Music-Site/Dschinghis Khan - Moskau (Starparade 14.06.1979).mp3',
   'Music-Site/Redbone - Come and Get Your Love (Single Edit - Audio).mp3',
   'Music-Site/Earth, Wind & Fire - September.mp3',
+  'Music-Site/Earth, Wind & Fire - Lets Groove (Official Audio).mp3',
   'Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3',
-  'Music-Site/Bla Bla Bla (Radio Cut).mp3'
+  'Music-Site/Bon Jovi - Living On A Prayer.mp3',
+  'Music-Site/ABBA - Lay All Your Love On Me Lyrics.mp3',
+  'Music-Site/Bla Bla Bla (Radio Cut).mp3',
+  'Music-Site/Rixton - Me and My Broken Heart (Official Video).mp3'
 ];
 
 function shuffle(array) {
@@ -97,10 +105,16 @@ shuffle(playlist);
 
 let currentTrackIndex = 0;
 const audio = new Audio();
+audio.src = playlist[currentTrackIndex];
 audio.preload = 'auto';
 audio.volume = 0.3;
-audio.src = playlist[currentTrackIndex];
 
+const btn = document.getElementById('music-player-btn');
+const playButton = document.getElementById("play-button");
+const pauseIcon = document.getElementById('pause-icon');
+const playIcon = document.getElementById('play-icon');
+
+// Web Audio API setup
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const source = audioCtx.createMediaElementSource(audio);
 const analyser = audioCtx.createAnalyser();
@@ -110,10 +124,7 @@ analyser.fftSize = 256;
 const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
 
-const btn = document.getElementById('music-player-btn');
-const pauseIcon = document.getElementById('pause-icon');
-const playIcon = document.getElementById('play-icon');
-
+// Play/pause toggle
 function togglePlayPause() {
   if (audioCtx.state === 'suspended') {
     audioCtx.resume();
@@ -136,31 +147,35 @@ function togglePlayPause() {
 }
 btn.addEventListener('click', togglePlayPause);
 
+// Track change
 audio.addEventListener('ended', () => {
   currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
   audio.src = playlist[currentTrackIndex];
   audio.play();
 });
 
-// Loading screen
+// Loading screen fade out
 window.addEventListener("load", function () {
   const loadingScreen = document.getElementById("loading-screen");
   loadingScreen.classList.add("fade-out");
+
   setTimeout(() => {
     loadingScreen.style.display = "none";
   }, 10000);
 });
 
-// Color fading
-let currentRGB = { r: 0.0, g: 0.67, b: 1.0 };
+// --- Color fading variables ---
+let currentRGB = { r: 0.0, g: 0.67, b: 1.0 }; // initial color normalized
 let targetRGB = { r: 0.0, g: 0.67, b: 1.0 };
-const fadeSpeed = 0.01;
+const fadeSpeed = 0.01; // lower = slower
 
+// Animation loop
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
 
   analyser.getByteFrequencyData(dataArray);
 
+  // Scale cube based on average frequency volume
   let sum = 0;
   for (let i = 0; i < bufferLength; i++) {
     sum += dataArray[i];
@@ -169,18 +184,11 @@ function animate(time = performance.now()) {
   const scale = 1 + avg / 256;
   cube.scale.set(scale, scale, scale);
 
-  let lowSum = 0;
-  for (let i = 0; i < bufferLength / 3; i++) {
-    lowSum += dataArray[i];
-  }
-  let midSum = 0;
-  for (let i = Math.floor(bufferLength / 3); i < 2 * bufferLength / 3; i++) {
-    midSum += dataArray[i];
-  }
-  let highSum = 0;
-  for (let i = Math.floor(2 * bufferLength / 3); i < bufferLength; i++) {
-    highSum += dataArray[i];
-  }
+  // Map frequency bands to RGB
+  let lowSum = 0, midSum = 0, highSum = 0;
+  for (let i = 0; i < bufferLength / 3; i++) lowSum += dataArray[i];
+  for (let i = bufferLength / 3; i < 2 * bufferLength / 3; i++) midSum += dataArray[i];
+  for (let i = 2 * bufferLength / 3; i < bufferLength; i++) highSum += dataArray[i];
 
   const normLow = Math.min(lowSum / (bufferLength / 3) / 256, 1);
   const normMid = Math.min(midSum / (bufferLength / 3) / 256, 1);
@@ -197,8 +205,9 @@ function animate(time = performance.now()) {
   const col = new THREE.Color(currentRGB.r, currentRGB.g, currentRGB.b);
   const hsl = {};
   col.getHSL(hsl);
-  cube.material.color.setHSL(hsl.h, 0.4, 0.7);
+  cube.material.color.setHSL(hsl.h, 0.4, 0.7); // pastel tweak
 
+  // Rotation
   const elapsed = time - rotationStartTime;
   const t = Math.min(elapsed / rotationDuration, 1);
   const nextIndex = (currentIndex + 1) % sequence.length;
@@ -212,6 +221,7 @@ function animate(time = performance.now()) {
     rotationStartTime = time;
   }
 
+  updateLinks(sequence[currentIndex].face);
   renderer.render(scene, camera);
 }
 
