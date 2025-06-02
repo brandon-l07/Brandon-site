@@ -89,7 +89,6 @@ const playlist = [
   'Music-Site/Earth, Wind & Fire - September.mp3',
   'Music-Site/Earth, Wind & Fire - Lets Groove (Official Audio).mp3',
   'Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3',
-  'Music-Site/Bon Jovi - Living On A Prayer.mp3',
   'Music-Site/ABBA - Lay All Your Love On Me Lyrics.mp3',
   'Music-Site/Bla Bla Bla (Radio Cut).mp3',
   'Music-Site/Rixton - Me and My Broken Heart (Official Video).mp3'
