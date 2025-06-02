@@ -36,12 +36,12 @@ h1 {
   left: 49%;
 }
 
-#x-container {
+#linkdln-container {
   left: 52%;
 }
 
 #instagram-container img,
-#x-container img {
+#linkdln-container img {
   width: 16px;
   height: 16px;
   filter: none;
