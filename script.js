@@ -111,6 +111,7 @@ audio.volume = 0.3;
 
 const btn = document.getElementById('music-player-btn');
 const playButton = document.getElementById("play-button");
+const pauseIcon = document.getElementById('pause-icon');
 const epilepsyPopup = document.getElementById("epilepsy-popup");
 const epilepsyClose = document.getElementById("epilepsy-close");
 
@@ -125,8 +126,6 @@ playButton.addEventListener("click", () => {
 epilepsyClose.addEventListener("click", () => {
   epilepsyPopup.style.display = "none";
 });
-
-const pauseIcon = document.getElementById('pause-icon');
 
 // Web Audio API setup
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
