@@ -1,6 +1,11 @@
 // Scene Setup
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
 camera.position.z = 3;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -39,7 +44,7 @@ const faceToNav = {
   top: { corner: "top-right", text: "Blog" },
   back: { corner: "bottom-right", text: "Contact" },
   left: { corner: "top-left", text: "About" },
-  bottom: { corner: "bottom-right", text: "Contact" }
+  bottom: { corner: "bottom-right", text: "Contact" },
 };
 
 const faceRotations = {
@@ -82,16 +87,16 @@ function lerp(a, b, t) {
 
 // Music Player
 const playlist = [
-  'Music-Site/Abba - Dancing Queen (Official Music Video Remastered).mp3',
-  'Music-Site/Rick Astley - Together Forever (Official Video) [4K Remaster].mp3',
-  'Music-Site/Dschinghis Khan - Moskau (Starparade 14.06.1979).mp3',
-  'Music-Site/Redbone - Come and Get Your Love (Single Edit - Audio).mp3',
-  'Music-Site/Earth, Wind & Fire - September.mp3',
-  'Music-Site/Earth, Wind & Fire - Lets Groove (Official Audio).mp3',
-  'Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3',
-  'Music-Site/ABBA - Lay All Your Love On Me Lyrics.mp3',
-  'Music-Site/Bla Bla Bla (Radio Cut).mp3',
-  'Music-Site/Rixton - Me and My Broken Heart (Official Video).mp3'
+  "Music-Site/Abba - Dancing Queen (Official Music Video Remastered).mp3",
+  "Music-Site/Rick Astley - Together Forever (Official Video) [4K Remaster].mp3",
+  "Music-Site/Dschinghis Khan - Moskau (Starparade 14.06.1979).mp3",
+  "Music-Site/Redbone - Come and Get Your Love (Single Edit - Audio).mp3",
+  "Music-Site/Earth, Wind & Fire - September.mp3",
+  "Music-Site/Earth, Wind & Fire - Lets Groove (Official Audio).mp3",
+  "Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3",
+  "Music-Site/ABBA - Lay All Your Love On Me Lyrics.mp3",
+  "Music-Site/Bla Bla Bla (Radio Cut).mp3",
+  "Music-Site/Rixton - Me and My Broken Heart (Official Video).mp3",
 ];
 
 function shuffle(array) {
@@ -105,13 +110,13 @@ shuffle(playlist);
 let currentTrackIndex = 0;
 const audio = new Audio();
 audio.src = playlist[currentTrackIndex];
-audio.preload = 'auto';
+audio.preload = "auto";
 audio.volume = 0.3;
 
-const btn = document.getElementById('music-player-btn');
+const btn = document.getElementById("music-player-btn");
 const playButton = document.getElementById("play-button");
-const pauseIcon = document.getElementById('pause-icon');
-const playIcon = document.getElementById('play-icon'); // added for togglePlayPause fix
+const pauseIcon = document.getElementById("pause-icon");
+const playIcon = document.getElementById("play-icon");
 
 // Web Audio API setup
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -125,29 +130,29 @@ const dataArray = new Uint8Array(bufferLength);
 
 // Play/pause toggle
 function togglePlayPause() {
-  if (audioCtx.state === 'suspended') {
+  if (audioCtx.state === "suspended") {
     audioCtx.resume();
   }
 
   if (audio.paused) {
     audio.play();
-    btn.textContent = 'Curated by Brandon';
+    btn.textContent = "Curated by Brandon";
     btn.prepend(pauseIcon);
-    pauseIcon.style.display = 'inline';
-    playIcon.style.display = 'none';
+    pauseIcon.style.display = "inline";
+    playIcon.style.display = "none";
     rotationStartTime = performance.now();
   } else {
     audio.pause();
-    btn.textContent = 'Play';
+    btn.textContent = "Play";
     btn.prepend(playIcon);
-    playIcon.style.display = 'inline';
-    pauseIcon.style.display = 'none';
+    playIcon.style.display = "inline";
+    pauseIcon.style.display = "none";
   }
 }
-btn.addEventListener('click', togglePlayPause);
+btn.addEventListener("click", togglePlayPause);
 
 // Track change
-audio.addEventListener('ended', () => {
+audio.addEventListener("ended", () => {
   currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
   audio.src = playlist[currentTrackIndex];
   audio.play();
@@ -194,14 +199,18 @@ function animate(time = performance.now()) {
 
   // Mid freq: 1/3 to 2/3 buffer
   let midSum = 0;
-  for (let i = Math.floor(bufferLength / 3); i < 2 * bufferLength / 3; i++) {
+  for (
+    let i = Math.floor(bufferLength / 3);
+    i < (2 * bufferLength) / 3;
+    i++
+  ) {
     midSum += dataArray[i];
   }
   let midAvg = midSum / (bufferLength / 3);
 
   // High freq: 2/3 to end
   let highSum = 0;
-  for (let i = Math.floor(2 * bufferLength / 3); i < bufferLength; i++) {
+  for (let i = Math.floor((2 * bufferLength) / 3); i < bufferLength; i++) {
     highSum += dataArray[i];
   }
   let highAvg = highSum / (bufferLength / 3);
@@ -212,7 +221,7 @@ function animate(time = performance.now()) {
   const normHigh = Math.min(highAvg / 256, 1);
 
   // Set target RGB based on these normalized values, pastel style (keep saturation and lightness fixed)
-  targetRGB.r = lerp(currentRGB.r, normLow, 0.05);   // slowly update target for smoothing
+  targetRGB.r = lerp(currentRGB.r, normLow, 0.05); // slowly update target for smoothing
   targetRGB.g = lerp(currentRGB.g, normMid, 0.05);
   targetRGB.b = lerp(currentRGB.b, normHigh, 0.05);
 
@@ -240,9 +249,10 @@ function animate(time = performance.now()) {
   const fromRot = faceRotations[sequence[currentIndex].face];
   const toRot = faceRotations[sequence[nextIndex].face];
   cube.rotation.x = lerp(fromRot.x, toRot.x, t);
-  cube.rotation.y = lerp(fromRot.y, toRot.y, t);
-
-  if (t === 1) {
+  cube.rotation.y = lerp
+::contentReference[oaicite:4]{index=4}
+ 
+ if (t === 1) {
     currentIndex = nextIndex;
     rotationStartTime = time;
   }
@@ -252,6 +262,3 @@ function animate(time = performance.now()) {
 }
 
 animate();
-
-
-
