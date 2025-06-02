@@ -164,13 +164,31 @@ function animate(time = performance.now()) {
 
   // Audio analysis
   analyser.getByteFrequencyData(dataArray);
+
+  // Scale cube based on total volume
   let sum = 0;
   for (let i = 0; i < bufferLength; i++) {
     sum += dataArray[i];
   }
   const avg = sum / bufferLength;
-  const scale = 1 + avg / 256; // Adjust divisor to tune sensitivity
+  const scale = 1 + avg / 256;
   cube.scale.set(scale, scale, scale);
+
+  // Smooth color fade based on pitch
+  let highSum = 0;
+  for (let i = bufferLength * 0.75; i < bufferLength; i++) {
+    highSum += dataArray[i];
+  }
+  const highAvg = highSum / (bufferLength * 0.25);
+
+  const targetHue = Math.min(360, Math.floor(highAvg * 3)); // map to 0–360
+  const currentColor = cube.material.color;
+  const hsl = {};
+  currentColor.getHSL(hsl);
+
+  const lerpSpeed = 0.05;
+  const newHue = hsl.h + (targetHue / 360 - hsl.h) * lerpSpeed;
+  cube.material.color.setHSL(newHue, 1, 0.5);
 
   // Rotation logic
   const elapsed = time - rotationStartTime;
@@ -191,3 +209,4 @@ function animate(time = performance.now()) {
 }
 
 animate();
+
