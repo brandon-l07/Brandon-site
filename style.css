@@ -76,10 +76,18 @@ h1 {
   z-index: 10;
 }
 
-#top-left { top: 1rem; left: 1rem; }
-#top-right { top: 1rem; right: 1rem; }
-#bottom-left { bottom: 1rem; left: 1rem; }
-#bottom-right { bottom: 1rem; right: 1rem; }
+.nav-corner {
+  position: absolute;
+  padding: 10px;
+  font-size: 1.2em;
+  text-decoration: none;
+}
+
+#top-left { top: 10px; left: 10px; }
+#top-right { top: 10px; right: 10px; }
+#bottom-left { bottom: 10px; left: 10px; }
+#bottom-right { bottom: 10px; right: 10px; }
+
 
 .nav.visible {
   color: white;
