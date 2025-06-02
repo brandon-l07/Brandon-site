@@ -32,10 +32,6 @@ h1 {
   line-height: inherit;
 }
 
-.face {
-  pointer-events: auto;
-}
-
 /* Social Media Buttons */
 #instagram-container,
 #x-container {
