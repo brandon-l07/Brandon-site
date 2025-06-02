@@ -88,6 +88,7 @@ const playlist = [
   'Music-Site/Redbone - Come and Get Your Love (Single Edit - Audio).mp3',
   'Music-Site/Earth, Wind & Fire - September.mp3',
   'Music-Site/Jackson 5 - I Want You Back (Lyric Video).mp3',
+  // add more songs here — now it's safe
 ];
 
 function shuffle(array) {
@@ -100,16 +101,11 @@ shuffle(playlist);
 
 let currentTrackIndex = 0;
 const audio = new Audio();
-audio.src = playlist[currentTrackIndex];
 audio.preload = 'auto';
 audio.volume = 0.3;
+audio.src = playlist[currentTrackIndex];
 
-const btn = document.getElementById('music-player-btn');
-const playButton = document.getElementById("play-button");
-const pauseIcon = document.getElementById('pause-icon');
-const playIcon = document.getElementById('play-icon'); // added for togglePlayPause fix
-
-// Web Audio API setup
+// Audio Context Setup (only once)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const source = audioCtx.createMediaElementSource(audio);
 const analyser = audioCtx.createAnalyser();
@@ -118,6 +114,11 @@ analyser.connect(audioCtx.destination);
 analyser.fftSize = 256;
 const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
+
+const btn = document.getElementById('music-player-btn');
+const playButton = document.getElementById("play-button");
+const pauseIcon = document.getElementById('pause-icon');
+const playIcon = document.getElementById('play-icon');
 
 // Play/pause toggle
 function togglePlayPause() {
@@ -159,18 +160,16 @@ window.addEventListener("load", function () {
   }, 10000);
 });
 
-// --- Color fading variables to keep track of current RGB target & current values ---
-let currentRGB = { r: 0.0, g: 0.67, b: 1.0 }; // initial color approx 0x00aaff normalized
+// Color fading
+let currentRGB = { r: 0.0, g: 0.67, b: 1.0 };
 let targetRGB = { r: 0.0, g: 0.67, b: 1.0 };
-const fadeSpeed = 0.01; // smaller is slower fade
+const fadeSpeed = 0.01;
 
-// Animation loop
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
 
   analyser.getByteFrequencyData(dataArray);
 
-  // Scale cube based on total volume
   let sum = 0;
   for (let i = 0; i < bufferLength; i++) {
     sum += dataArray[i];
@@ -179,55 +178,36 @@ function animate(time = performance.now()) {
   const scale = 1 + avg / 256;
   cube.scale.set(scale, scale, scale);
 
-  // --- Frequency Bands to Color Channels ---
-  // Map low, mid, high frequency ranges to R, G, B channels smoothly
-  // Low freq: 0 to 1/3 buffer
   let lowSum = 0;
   for (let i = 0; i < bufferLength / 3; i++) {
     lowSum += dataArray[i];
   }
-  let lowAvg = lowSum / (bufferLength / 3);
-
-  // Mid freq: 1/3 to 2/3 buffer
   let midSum = 0;
   for (let i = Math.floor(bufferLength / 3); i < 2 * bufferLength / 3; i++) {
     midSum += dataArray[i];
   }
-  let midAvg = midSum / (bufferLength / 3);
-
-  // High freq: 2/3 to end
   let highSum = 0;
   for (let i = Math.floor(2 * bufferLength / 3); i < bufferLength; i++) {
     highSum += dataArray[i];
   }
-  let highAvg = highSum / (bufferLength / 3);
 
-  // Normalize to 0-1
-  const normLow = Math.min(lowAvg / 256, 1);
-  const normMid = Math.min(midAvg / 256, 1);
-  const normHigh = Math.min(highAvg / 256, 1);
+  const normLow = Math.min(lowSum / (bufferLength / 3) / 256, 1);
+  const normMid = Math.min(midSum / (bufferLength / 3) / 256, 1);
+  const normHigh = Math.min(highSum / (bufferLength / 3) / 256, 1);
 
-  // Set target RGB based on these normalized values, pastel style (keep saturation and lightness fixed)
-  targetRGB.r = lerp(currentRGB.r, normLow, 0.05);   // slowly update target for smoothing
+  targetRGB.r = lerp(currentRGB.r, normLow, 0.05);
   targetRGB.g = lerp(currentRGB.g, normMid, 0.05);
   targetRGB.b = lerp(currentRGB.b, normHigh, 0.05);
 
-  // Smooth fade from currentRGB to targetRGB
   currentRGB.r += (targetRGB.r - currentRGB.r) * fadeSpeed;
   currentRGB.g += (targetRGB.g - currentRGB.g) * fadeSpeed;
   currentRGB.b += (targetRGB.b - currentRGB.b) * fadeSpeed;
 
-  // Convert currentRGB to HSL for pastel
-  // Use THREE.Color for conversion convenience:
   const col = new THREE.Color(currentRGB.r, currentRGB.g, currentRGB.b);
   const hsl = {};
   col.getHSL(hsl);
 
-  // Pastel tweak: fix saturation and lightness to soft pastel values
-  const pastelSaturation = 0.4;
-  const pastelLightness = 0.7;
-
-  cube.material.color.setHSL(hsl.h, pastelSaturation, pastelLightness);
+  cube.material.color.setHSL(hsl.h, 0.4, 0.7); // pastel color
 
   // Rotation
   const elapsed = time - rotationStartTime;
@@ -248,3 +228,4 @@ function animate(time = performance.now()) {
 }
 
 animate();
+
