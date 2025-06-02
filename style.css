@@ -22,16 +22,6 @@ h1 {
   margin: 0;
 }
 
-.face a {
-  color: inherit;
-  text-decoration: none;
-  display: block;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  line-height: inherit;
-}
-
 /* Social Media Buttons */
 #instagram-container,
 #x-container {
