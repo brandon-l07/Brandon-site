@@ -59,7 +59,6 @@ function updateLinks(faceName) {
       elem.style.backgroundColor = "transparent";
       elem.style.color = "white";
 
-      // Make the nav element clickable by setting the href as an <a> inside
       elem.style.cursor = "pointer";
       elem.onclick = () => {
         window.location.href = info.href;
@@ -95,8 +94,6 @@ function lerp(a, b, t) {
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
 
-  // ... (audio and color animation code unchanged)
-
   // Rotation
   const elapsed = time - rotationStartTime;
   const t = Math.min(elapsed / rotationDuration, 1);
@@ -117,5 +114,18 @@ function animate(time = performance.now()) {
 
 animate();
 
+
+// ====== Loading Screen Fade Out Logic ======
+
+const loadingScreen = document.getElementById("loading-screen");
+const mainContent = document.getElementById("main-content");
+
+if (loadingScreen && mainContent) {
+  loadingScreen.classList.add("fade-out");
+  loadingScreen.addEventListener("transitionend", () => {
+    loadingScreen.style.display = "none";
+    mainContent.style.display = "block";
+  }, { once: true });
+}
 
 
