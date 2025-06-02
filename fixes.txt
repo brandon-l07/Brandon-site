@@ -1,0 +1,2 @@
+1. Make about, projects, blog, and contact .htmls accessible via links.
+2. Create pages above.
