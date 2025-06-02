@@ -158,6 +158,15 @@ window.addEventListener("load", function () {
   }, 10000);
 });
 
+// Helper to get average volume in frequency range
+function getAverageVolume(data, start, end) {
+  let sum = 0;
+  for (let i = start; i <= end; i++) {
+    sum += data[i];
+  }
+  return sum / (end - start + 1);
+}
+
 // Animation loop
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
@@ -165,30 +174,25 @@ function animate(time = performance.now()) {
   // Audio analysis
   analyser.getByteFrequencyData(dataArray);
 
-  // Scale cube based on total volume
+  // Map frequency bands to RGB color channels
+  const low = getAverageVolume(dataArray, 0, 10);     // Bass frequencies
+  const mid = getAverageVolume(dataArray, 11, 40);    // Mid frequencies
+  const high = getAverageVolume(dataArray, 41, bufferLength - 1);  // High frequencies
+
+  // Normalize to 0-1 range
+  const targetColor = new THREE.Color(low / 255, mid / 255, high / 255);
+
+  // Smoothly fade color (lerp factor controls fade speed)
+  cube.material.color.lerp(targetColor, 0.1);
+
+  // Also scale cube based on average volume for visual interest
   let sum = 0;
   for (let i = 0; i < bufferLength; i++) {
     sum += dataArray[i];
   }
   const avg = sum / bufferLength;
-  const scale = 1 + avg / 256;
+  const scale = 1 + avg / 256; // Adjust divisor to tune sensitivity
   cube.scale.set(scale, scale, scale);
-
-  // Smooth color fade based on pitch
-  let highSum = 0;
-  for (let i = bufferLength * 0.75; i < bufferLength; i++) {
-    highSum += dataArray[i];
-  }
-  const highAvg = highSum / (bufferLength * 0.25);
-
-  const targetHue = Math.min(360, Math.floor(highAvg * 3)); // map to 0–360
-  const currentColor = cube.material.color;
-  const hsl = {};
-  currentColor.getHSL(hsl);
-
-  const lerpSpeed = 0.05;
-  const newHue = hsl.h + (targetHue / 360 - hsl.h) * lerpSpeed;
-  cube.material.color.setHSL(newHue, 1, 0.5);
 
   // Rotation logic
   const elapsed = time - rotationStartTime;
