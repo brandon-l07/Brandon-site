@@ -121,6 +121,49 @@ h1 {
   height: 20px;
 }
 
+/* Epilepsy Warning */
+#epilepsy-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(20, 20, 30, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+#epilepsy-content {
+  background-color: #1e1e2f;
+  border: 2px solid #caa6f2;
+  border-radius: 12px;
+  color: #f8eaff;
+  max-width: 400px;
+  padding: 20px 30px;
+  box-shadow: 0 0 20px #d7b3ff88;
+  position: relative;
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+}
+
+#epilepsy-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #f8eaff;
+  cursor: pointer;
+}
+
+#epilepsy-close:hover {
+  color: #fff;
+}
+
+
 /* Loading Screen */
 #loading-screen {
   position: fixed;
