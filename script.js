@@ -157,6 +157,7 @@ audio.addEventListener('ended', () => {
 window.addEventListener("load", function () {
   const loadingScreen = document.getElementById("loading-screen");
   loadingScreen.classList.add("fade-out");
+
   setTimeout(() => {
     loadingScreen.style.display = "none";
   }, 10000);
@@ -166,7 +167,6 @@ window.addEventListener("load", function () {
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
 
-  // Audio analysis
   analyser.getByteFrequencyData(dataArray);
 
   // Scale cube based on total volume
@@ -178,7 +178,7 @@ function animate(time = performance.now()) {
   const scale = 1 + avg / 256;
   cube.scale.set(scale, scale, scale);
 
-  // --- COLOR UPDATE (Smooth & Responsive) ---
+  // Pastel/Vaporwave Color Update
   let highSum = 0;
   for (let i = Math.floor(bufferLength * 0.75); i < bufferLength; i++) {
     highSum += dataArray[i];
@@ -189,22 +189,24 @@ function animate(time = performance.now()) {
   const hsl = {};
   currentColor.getHSL(hsl);
 
-  let lerpSpeed = 0.08;
+  let lerpSpeed = 0.1;
   let forcedHueShift = 0;
 
   if (!audio.paused) {
     lerpSpeed = 0.12;
-    forcedHueShift = 0.02 * Math.sin(time * 0.001); // Very subtle oscillation
+    forcedHueShift = 0.015 * Math.sin(time * 0.001);
   }
 
   let targetHue = Math.min(1, highAvg * 3 / 360) + forcedHueShift;
-  targetHue = (targetHue + 1) % 1; // Wrap within 0–1
+  targetHue = (targetHue + 1) % 1;
 
   const newHue = hsl.h + (targetHue - hsl.h) * lerpSpeed;
-  cube.material.color.setHSL(newHue, 1, 0.5);
-  // -----------------------------------------
+  const targetSaturation = 0.4; // pastel-like saturation
+  const targetLightness = 0.7;  // soft but visible
 
-  // --- SMOOTH LERP ROTATION TRANSITION ---
+  cube.material.color.setHSL(newHue, targetSaturation, targetLightness);
+
+  // Rotation
   const elapsed = time - rotationStartTime;
   const t = Math.min(elapsed / rotationDuration, 1);
   const nextIndex = (currentIndex + 1) % sequence.length;
@@ -217,14 +219,11 @@ function animate(time = performance.now()) {
     currentIndex = nextIndex;
     rotationStartTime = time;
   }
-  // ---------------------------------------
 
   updateLinks(sequence[currentIndex].face);
   renderer.render(scene, camera);
 }
 
 animate();
-
-
 
 
