@@ -34,12 +34,12 @@ const navElems = {
 };
 
 const faceToNav = {
-  right: { corner: "top-left", text: "About", href: "about.html" },
-  front: { corner: "bottom-left", text: "Projects", href: "projects.html" },
-  top: { corner: "top-right", text: "Blog", href: "blog.html" },
-  back: { corner: "bottom-right", text: "Contact", href: "contact.html" },
-  left: { corner: "top-left", text: "About", href: "about.html" },
-  bottom: { corner: "bottom-right", text: "Contact", href: "contact.html" }
+  right: { corner: "top-left", text: "About" },
+  front: { corner: "bottom-left", text: "Projects" },
+  top: { corner: "top-right", text: "Blog" },
+  back: { corner: "bottom-right", text: "Contact" },
+  left: { corner: "top-left", text: "About" },
+  bottom: { corner: "bottom-right", text: "Contact" }
 };
 
 const faceRotations = {
@@ -51,26 +51,16 @@ const faceRotations = {
 
 function updateLinks(faceName) {
   for (const corner in navElems) {
-    const elem = navElems[corner];
     if (faceName in faceToNav && corner === faceToNav[faceName].corner) {
-      const info = faceToNav[faceName];
-      elem.textContent = info.text;
-      elem.classList.add("visible");
-      elem.style.backgroundColor = "transparent";
-      elem.style.color = "white";
-
-      // Make clickable
-      elem.style.cursor = "pointer";
-      elem.onclick = () => {
-        window.location.href = info.href;
-      };
+      navElems[corner].textContent = faceToNav[faceName].text;
+      navElems[corner].classList.add("visible");
+      navElems[corner].style.backgroundColor = "transparent";
+      navElems[corner].style.color = "white";
     } else {
-      elem.textContent = "";
-      elem.classList.remove("visible");
-      elem.style.backgroundColor = "black";
-      elem.style.color = "black";
-      elem.style.cursor = "default";
-      elem.onclick = null;
+      navElems[corner].textContent = "";
+      navElems[corner].classList.remove("visible");
+      navElems[corner].style.backgroundColor = "black";
+      navElems[corner].style.color = "black";
     }
   }
 }
@@ -90,8 +80,7 @@ function lerp(a, b, t) {
   return a + (b - a) * t;
 }
 
-// --- Playlist & Audio Setup ---
-
+// Music Player
 const playlist = [
   'Music-Site/Abba - Dancing Queen (Official Music Video Remastered).mp3',
   'Music-Site/Rick Astley - Together Forever (Official Video) [4K Remaster].mp3',
@@ -106,120 +95,144 @@ const playlist = [
   'Music-Site/Rixton - Me and My Broken Heart (Official Video).mp3'
 ];
 
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+shuffle(playlist);
+
 let currentTrackIndex = 0;
 const audio = new Audio();
 audio.src = playlist[currentTrackIndex];
-audio.loop = false;
+audio.preload = 'auto';
+audio.volume = 0.3;
 
-// --- Audio analysis setup for beats and frequency ---
+const btn = document.getElementById('music-player-btn');
+const playButton = document.getElementById("play-button");
+const pauseIcon = document.getElementById('pause-icon');
+const playIcon = document.getElementById('play-icon'); // added for togglePlayPause fix
 
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-const analyser = audioContext.createAnalyser();
-analyser.fftSize = 256;
-
-const source = audioContext.createMediaElementSource(audio);
+// Web Audio API setup
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const source = audioCtx.createMediaElementSource(audio);
+const analyser = audioCtx.createAnalyser();
 source.connect(analyser);
-analyser.connect(audioContext.destination);
+analyser.connect(audioCtx.destination);
+analyser.fftSize = 256;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
 
-const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+// Play/pause toggle
+function togglePlayPause() {
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
 
-// --- Nav Elements continued ---
-
-const musicBtn = document.getElementById("music-player-btn");
-let isPlaying = false;
-let cubeExpanding = false;
-
-function startCubeExpansion() {
-  cubeExpanding = true;
+  if (audio.paused) {
+    audio.play();
+    btn.textContent = 'Curated by Brandon';
+    btn.prepend(pauseIcon);
+    pauseIcon.style.display = 'inline';
+    playIcon.style.display = 'none';
+    rotationStartTime = performance.now();
+  } else {
+    audio.pause();
+    btn.textContent = 'Play';
+    btn.prepend(playIcon);
+    playIcon.style.display = 'inline';
+    pauseIcon.style.display = 'none';
+  }
 }
+btn.addEventListener('click', togglePlayPause);
 
-function stopCubeExpansion() {
-  cubeExpanding = false;
-}
-
-// Update button text to show current track name nicely
-function updateMusicBtnText() {
-  const filename = playlist[currentTrackIndex].split('/').pop();
-  musicBtn.textContent = (isPlaying ? "Pause" : "Play") + " - " + filename;
-}
-
-updateMusicBtnText();
-
-// Play/pause button logic with playlist support
-musicBtn.addEventListener("click", () => {
-  // Resume AudioContext on user gesture first (required by browsers)
-  audioContext.resume().then(() => {
-    if (!isPlaying) {
-      audio.play()
-        .then(() => {
-          isPlaying = true;
-          updateMusicBtnText();
-          startCubeExpansion();
-        })
-        .catch((error) => {
-          console.error("Failed to play audio:", error);
-        });
-    } else {
-      audio.pause();
-      isPlaying = false;
-      updateMusicBtnText();
-      stopCubeExpansion();
-    }
-  }).catch(err => {
-    console.error("Failed to resume audio context:", err);
-  });
-});
-
-// When track ends, go to next track automatically
+// Track change
 audio.addEventListener('ended', () => {
   currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
   audio.src = playlist[currentTrackIndex];
-  if (isPlaying) {
-    audio.play();
-  }
-  updateMusicBtnText();
+  audio.play();
 });
 
-// --- Animation variables ---
+// Loading screen fade out
+window.addEventListener("load", function () {
+  const loadingScreen = document.getElementById("loading-screen");
+  loadingScreen.classList.add("fade-out");
 
-let cubeScale = 1;
+  setTimeout(() => {
+    loadingScreen.style.display = "none";
+  }, 10000);
+});
 
-// --- Animate loop ---
+// --- Color fading variables to keep track of current RGB target & current values ---
+let currentRGB = { r: 0.0, g: 0.67, b: 1.0 }; // initial color approx 0x00aaff normalized
+let targetRGB = { r: 0.0, g: 0.67, b: 1.0 };
+const fadeSpeed = 0.01; // smaller is slower fade
 
+// Animation loop
 function animate(time = performance.now()) {
   requestAnimationFrame(animate);
 
-  // Get frequency data
-  analyser.getByteFrequencyData(frequencyData);
+  analyser.getByteFrequencyData(dataArray);
 
-  // Calculate average frequency for bass (lower frequencies)
-  let bassSum = 0;
-  for (let i = 0; i < frequencyData.length / 4; i++) {
-    bassSum += frequencyData[i];
+  // Scale cube based on total volume
+  let sum = 0;
+  for (let i = 0; i < bufferLength; i++) {
+    sum += dataArray[i];
   }
-  const bassAvg = bassSum / (frequencyData.length / 4);
+  const avg = sum / bufferLength;
+  const scale = 1 + avg / 256;
+  cube.scale.set(scale, scale, scale);
 
-  // Resize cube based on bass and cubeExpanding state
-  if (cubeExpanding) {
-    cubeScale += bassAvg / 1000; // scale growth influenced by bass average
-    if (cubeScale > 1.5) cubeScale = 1.5;
-  } else {
-    cubeScale -= 0.01;
-    if (cubeScale < 1) cubeScale = 1;
+  // --- Frequency Bands to Color Channels ---
+  // Map low, mid, high frequency ranges to R, G, B channels smoothly
+  // Low freq: 0 to 1/3 buffer
+  let lowSum = 0;
+  for (let i = 0; i < bufferLength / 3; i++) {
+    lowSum += dataArray[i];
   }
-  cube.scale.set(cubeScale, cubeScale, cubeScale);
+  let lowAvg = lowSum / (bufferLength / 3);
 
-  // Recolor cube based on overall frequency
-  let freqSum = 0;
-  for (let i = 0; i < frequencyData.length; i++) {
-    freqSum += frequencyData[i];
+  // Mid freq: 1/3 to 2/3 buffer
+  let midSum = 0;
+  for (let i = Math.floor(bufferLength / 3); i < 2 * bufferLength / 3; i++) {
+    midSum += dataArray[i];
   }
-  const freqAvg = freqSum / frequencyData.length;
+  let midAvg = midSum / (bufferLength / 3);
 
-  // Map frequency average to color hue (0 to 360 degrees)
-  const hue = (freqAvg / 255) * 360;
-  const color = new THREE.Color(`hsl(${hue}, 100%, 50%)`);
-  cube.material.color = color;
+  // High freq: 2/3 to end
+  let highSum = 0;
+  for (let i = Math.floor(2 * bufferLength / 3); i < bufferLength; i++) {
+    highSum += dataArray[i];
+  }
+  let highAvg = highSum / (bufferLength / 3);
+
+  // Normalize to 0-1
+  const normLow = Math.min(lowAvg / 256, 1);
+  const normMid = Math.min(midAvg / 256, 1);
+  const normHigh = Math.min(highAvg / 256, 1);
+
+  // Set target RGB based on these normalized values, pastel style (keep saturation and lightness fixed)
+  targetRGB.r = lerp(currentRGB.r, normLow, 0.05);   // slowly update target for smoothing
+  targetRGB.g = lerp(currentRGB.g, normMid, 0.05);
+  targetRGB.b = lerp(currentRGB.b, normHigh, 0.05);
+
+  // Smooth fade from currentRGB to targetRGB
+  currentRGB.r += (targetRGB.r - currentRGB.r) * fadeSpeed;
+  currentRGB.g += (targetRGB.g - currentRGB.g) * fadeSpeed;
+  currentRGB.b += (targetRGB.b - currentRGB.b) * fadeSpeed;
+
+  // Convert currentRGB to HSL for pastel
+  // Use THREE.Color for conversion convenience:
+  const col = new THREE.Color(currentRGB.r, currentRGB.g, currentRGB.b);
+  const hsl = {};
+  col.getHSL(hsl);
+
+  // Pastel tweak: fix saturation and lightness to soft pastel values
+  const pastelSaturation = 0.4;
+  const pastelLightness = 0.7;
+
+  cube.material.color.setHSL(hsl.h, pastelSaturation, pastelLightness);
 
   // Rotation
   const elapsed = time - rotationStartTime;
